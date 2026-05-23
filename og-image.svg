@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- 은은한 오로라 광원 효과 정의 -->
+    <radialGradient id="aurora-purple" cx="30%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#9d4edd" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#08090d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aurora-blue" cx="70%" cy="65%" r="60%">
+      <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#08090d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 1. 기본 앱 다크 모드 배경 -->
+  <rect width="1200" height="630" fill="#08090d"/>
+
+  <!-- 2. 은은한 백그라운드 오로라 구름 -->
+  <rect width="1200" height="630" fill="url(#aurora-purple)"/>
+  <rect width="1200" height="630" fill="url(#aurora-blue)"/>
+
+  <!-- 3. 중앙 앱 아이콘 상자 (입체 글래스 모서리 디자인) -->
+  <rect x="460" y="175" width="280" height="280" rx="64" fill="#0f111a" stroke="rgba(255, 255, 255, 0.08)" stroke-width="3" />
+  
+  <!-- 4. 정중앙 🏆 골드 트로피 이모지 -->
+  <text x="600" y="325" font-family="'Inter', -apple-system, system-ui, sans-serif" font-size="140" dominant-baseline="middle" text-anchor="middle">🏆</text>
+</svg>
