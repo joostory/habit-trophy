@@ -730,7 +730,6 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
 /* 9. Trophy Room UI (3D-Style Gallery) */
 .trophy-room-shelf {
     position: relative;
-    padding-bottom: 24px;
 }
 
 .trophy-grid {
@@ -739,16 +738,6 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
     gap: 20px;
     padding: 10px 5px 20px 5px;
     min-height: 300px;
-}
-
-.shelf-wood {
-    width: 100%;
-    height: 14px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.4) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.6);
-    position: relative;
 }
 
 /* 3D Rotating Trophy Card */
