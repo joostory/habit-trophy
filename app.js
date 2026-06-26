@@ -10,6 +10,7 @@ class HabitTrophyApp {
         this.currentScreen = 'dashboard';
         this.selectedChallengeId = null;
         this.selectedTrophyId = null;
+        this.selectedDayNum = null;
         this.alarmInterval = null;
 
         // Configuration
@@ -156,6 +157,7 @@ class HabitTrophyApp {
         if (screenId === 'dashboard') {
             this.renderDashboard();
         } else if (screenId === 'detail') {
+            this.selectedDayNum = null;
             this.renderChallengeDetail();
         } else if (screenId === 'trophies') {
             this.renderTrophyRoom();
@@ -779,6 +781,11 @@ class HabitTrophyApp {
             return;
         }
 
+        // Set default selectedDayNum if not set
+        if (this.selectedDayNum === null) {
+            this.selectedDayNum = info.todayDayNum > 0 ? info.todayDayNum : this.CONFIG.TOTAL_DAYS;
+        }
+
         // 1. Render Card info Panel
         const cardInfo = document.getElementById('detail-card-info');
         cardInfo.style.setProperty('--theme-color', challenge.themeColor);
@@ -830,42 +837,68 @@ class HabitTrophyApp {
             }
 
             cell.className = `day-cell ${statusClass}`;
+            if (i === this.selectedDayNum) {
+                cell.classList.add('selected');
+            }
+            
             cell.style.setProperty('--theme-color', challenge.themeColor);
             cell.style.setProperty('--theme-color-glow', challenge.themeColor + '40');
             cell.textContent = i;
 
-            // Bind click if it is checkable today
-            if (i === info.todayDayNum && record.checked !== true) {
-                cell.onclick = (e) => this.toggleTodayCheck(challenge.id, e);
+            // Bind click for past and today's days
+            if (i <= info.daysElapsed) {
+                cell.onclick = (e) => {
+                    e.stopPropagation();
+                    this.selectDay(i);
+                };
             }
 
             grid.appendChild(cell);
         }
 
+        // Update memo section title dynamically
+        const isTodaySelected = (this.selectedDayNum === info.todayDayNum);
+        const titleSuffix = isTodaySelected ? `오늘 (${this.selectedDayNum}일차)` : `${this.selectedDayNum}일차`;
+        const memoTitle = document.querySelector('.memo-logs-section h3');
+        if (memoTitle) {
+            memoTitle.textContent = `${titleSuffix} 실천 일기`;
+        }
+
         // 3. Render Memo Input UI availability
         const memoBlock = document.getElementById('memo-input-block');
-        const todayRecord = challenge.checkRecords[info.todayDayNum - 1];
+        const selectedRecord = challenge.checkRecords[this.selectedDayNum - 1];
         
-        if (todayRecord && todayRecord.checked === true && todayRecord.memo) {
-            // Already wrote memo today
+        if (selectedRecord && selectedRecord.checked === true) {
+            // Completed state: show memo content, allow edit or cancel check
+            const existingMemo = selectedRecord.memo || '';
             memoBlock.innerHTML = `
-                <div style="background:rgba(255,255,255,0.03); border:1px dashed var(--white-15); padding:16px; border-radius:12px; font-size:13px; text-align:center;">
-                    🎉 오늘의 실천 일기 작성을 이미 마쳤습니다! 
-                    <p style="color:var(--theme-color); font-weight:700; margin-top:8px;">"${todayRecord.memo}"</p>
+                <textarea id="today-memo-input" placeholder="이 날은 일기 기록이 비어있습니다. 실천 소감을 남겨보세요!" maxlength="100">${existingMemo}</textarea>
+                <div class="memo-actions" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="char-counter" id="char-counter">${existingMemo.length}/100</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-danger btn-sm" onclick="app.toggleDayCheckState('${challenge.id}', ${this.selectedDayNum}, false)">실천 체크 취소 ✕</button>
+                        <button class="btn btn-primary btn-sm" id="btn-save-memo" onclick="app.saveDayMemo('${challenge.id}', ${this.selectedDayNum})">메모 수정 저장 💾</button>
+                    </div>
                 </div>
             `;
         } else {
-            // Input available
+            // Missed / Unchecked state: allow checking or checking + memo
             memoBlock.innerHTML = `
-                <textarea id="today-memo-input" placeholder="오늘 실천하면서 어땠나요? 가벼운 다짐이나 소감을 한 줄 남겨주세요." maxlength="100"></textarea>
-                <div class="memo-actions">
+                <textarea id="today-memo-input" placeholder="${titleSuffix} 실천하면서 어땠나요? 소감을 적고 완료해 보세요!" maxlength="100"></textarea>
+                <div class="memo-actions" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
                     <span class="char-counter" id="char-counter">0/100</span>
-                    <button class="btn btn-accent btn-sm" id="btn-save-memo" onclick="app.saveTodayMemo()">기록 저장</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-outline btn-sm" onclick="app.toggleDayCheckState('${challenge.id}', ${this.selectedDayNum}, true)">체크만 완료 🗸</button>
+                        <button class="btn btn-accent btn-sm" id="btn-save-memo" onclick="app.saveDayMemo('${challenge.id}', ${this.selectedDayNum})">기록 & 완료 저장 🚀</button>
+                    </div>
                 </div>
             `;
-            // Re-bind counter listener
-            const textInput = document.getElementById('today-memo-input');
-            const counter = document.getElementById('char-counter');
+        }
+
+        // Re-bind counter listener for textarea
+        const textInput = document.getElementById('today-memo-input');
+        const counter = document.getElementById('char-counter');
+        if (textInput && counter) {
             textInput.addEventListener('input', (e) => {
                 counter.textContent = `${e.target.value.length}/100`;
             });
@@ -895,6 +928,71 @@ class HabitTrophyApp {
         }
 
         lucide.createIcons();
+    }
+
+    // Select specific day in detailed view
+    selectDay(dayNum) {
+        this.selectedDayNum = dayNum;
+        this.renderChallengeDetail();
+    }
+
+    // Toggle specific day check state (success / missed-uncheck)
+    toggleDayCheckState(challengeId, dayNum, targetState) {
+        const challenge = this.challenges.find(c => c.id === challengeId);
+        if (!challenge) return;
+
+        const info = this.calculateChallengeTimeline(challenge);
+        
+        // Prevent toggling future days
+        if (dayNum > info.daysElapsed) {
+            alert('아직 오지 않은 미래 날짜는 체크할 수 없습니다!');
+            return;
+        }
+
+        const record = challenge.checkRecords[dayNum - 1];
+        if (!record) return;
+
+        if (targetState) {
+            // Set as Completed
+            record.checked = true;
+            this.triggerConfetti();
+        } else {
+            // Cancel Completed
+            const isToday = (dayNum === info.todayDayNum);
+            // If it is today, revert to null (pending), otherwise revert to false (missed)
+            record.checked = isToday ? null : false;
+        }
+
+        this.saveData();
+        this.renderChallengeDetail();
+    }
+
+    // Save memo and complete checking for a specific day
+    saveDayMemo(challengeId, dayNum) {
+        const challenge = this.challenges.find(c => c.id === challengeId);
+        if (!challenge) return;
+
+        const memoInput = document.getElementById('today-memo-input');
+        if (!memoInput) return;
+
+        const memoText = memoInput.value.trim();
+        if (!memoText) {
+            alert('일기 내용을 입력해 주세요!');
+            return;
+        }
+
+        const record = challenge.checkRecords[dayNum - 1];
+        if (!record) return;
+
+        // Auto-check as completed if not checked yet
+        if (record.checked !== true) {
+            record.checked = true;
+            this.triggerConfetti();
+        }
+
+        record.memo = memoText;
+        this.saveData();
+        this.renderChallengeDetail();
     }
 
     // Screen 3: Trophy Room Renderer
@@ -1037,7 +1135,8 @@ class HabitTrophyApp {
         if (!challenge) return;
 
         if (confirm(`🧪 테스트용 치트: [${challenge.name}] 도전을 ${daysToComplete}일 성공 상태로 조작하시겠습니까?\n\n* 시작일은 29일 전으로 당겨지고, 29일간 성공 기록과 샘플 일기가 추가됩니다.\n* 즉시 오늘 날짜(30일차)의 체크가 대기 상태로 활성화됩니다.`)) {
-            const start = new Date();
+            const offset = new Date().getTimezoneOffset() * 60000;
+            const start = new Date(Date.now() - offset);
             // Pull starting date 29 days backwards
             start.setDate(start.getDate() - 29);
             const dateStr = start.toISOString().split('T')[0];

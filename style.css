@@ -537,7 +537,13 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
     background: rgba(255, 0, 127, 0.03);
     border-color: rgba(255, 0, 127, 0.15);
     color: rgba(255, 0, 127, 0.5);
-    cursor: default;
+    cursor: pointer;
+}
+
+.day-cell.missed:hover {
+    transform: scale(1.08);
+    background: rgba(255, 0, 127, 0.08);
+    border-color: rgba(255, 0, 127, 0.4);
 }
 
 .day-cell.missed::after {
@@ -553,7 +559,13 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
     border-color: var(--theme-color, var(--neon-emerald));
     color: var(--text-dark);
     box-shadow: 0 0 12px var(--theme-color-glow, var(--neon-emerald-glow));
-    cursor: default;
+    cursor: pointer;
+}
+
+.day-cell.completed:hover {
+    transform: scale(1.08);
+    filter: brightness(1.1);
+    box-shadow: 0 0 16px var(--theme-color-glow, var(--neon-emerald-glow));
 }
 
 .day-cell.completed::after {
@@ -562,6 +574,14 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
     position: absolute;
     bottom: 2px;
     font-weight: 800;
+}
+
+/* Selected Day Highlight */
+.day-cell.selected {
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 15px var(--theme-color-glow, var(--neon-blue-glow)), 0 0 0 1px #fff;
+    transform: scale(1.08);
+    z-index: 2;
 }
 
 /* Current Day - Checkable (Today) */
@@ -1114,6 +1134,32 @@ h1, h2, h3, h4, .logo-emoji, .trophy-grade-label {
 .btn-accent:hover {
     transform: scale(1.03);
     box-shadow: 0 6px 20px rgba(5, 250, 149, 0.5);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--neon-pink) 0%, #ff3399 100%);
+    color: var(--text-primary);
+    box-shadow: 0 4px 15px var(--neon-pink-glow);
+}
+
+.btn-danger:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 20px rgba(255, 0, 127, 0.5);
+}
+
+.btn-danger:active {
+    transform: scale(0.97);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--white-25);
+}
+
+.btn-outline:hover {
+    background: var(--white-08);
+    border-color: var(--white-25);
 }
 
 /* Trophy Modal Details */
