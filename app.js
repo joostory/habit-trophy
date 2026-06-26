@@ -440,7 +440,8 @@ class HabitTrophyApp {
                 rate: info.rate,
                 grade: grade,
                 themeColor: challenge.themeColor,
-                memos: activeMemos
+                memos: activeMemos,
+                checkRecords: JSON.parse(JSON.stringify(challenge.checkRecords)) // 깊은 복사하여 전체 기록 박제
             };
             this.trophies.push(newTrophy);
 
@@ -494,6 +495,34 @@ class HabitTrophyApp {
             `;
         }
 
+        // Render 30-Day Grid Calendar (for backward compatibility)
+        let gridHTML = '';
+        if (trophy.checkRecords && trophy.checkRecords.length > 0) {
+            gridHTML = `
+                <div style="width: 100%; margin: 10px 0;">
+                    <h4 style="font-size: 13px; margin-bottom: 8px; color: var(--text-muted); text-align: left; width: 100%;">📅 30일 달성 달력</h4>
+                    <div class="days-grid-container trophy-grid-view">
+                        ${trophy.checkRecords.map(record => {
+                            let statusClass = 'locked';
+                            if (record.checked === true) {
+                                statusClass = 'completed';
+                            } else if (record.checked === false) {
+                                statusClass = 'missed';
+                            }
+                            return `
+                                <div class="day-cell ${statusClass}" 
+                                     style="--theme-color: ${trophy.themeColor || 'var(--neon-blue)'}; 
+                                            --theme-color-glow: ${(trophy.themeColor || 'var(--neon-blue)')}40;
+                                            cursor: default;">
+                                    ${record.day}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         modalContent.innerHTML = `
             <div class="trophy-glow-large ${gradeClass}">
                 ${trophyEmoji}
@@ -514,7 +543,9 @@ class HabitTrophyApp {
                 </div>
             </div>
 
-            <div class="trophy-detail-memos">
+            ${gridHTML}
+
+            <div class="trophy-detail-memos" style="width: 100%;">
                 ${memosHTML}
             </div>
         `;
